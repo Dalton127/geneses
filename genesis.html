@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Stock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* cinza claro para fundo */
+        }
+        /* Efeito suave ao passar o mouse nas linhas da tabela */
+        .table-row-hover:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex overflow-hidden">
+
+    <!-- Barra Lateral -->
+    <aside class="w-64 bg-slate-800 text-white flex flex-col hidden md:flex transition-all duration-300">
+        <div class="p-6 flex items-center justify-center border-b border-slate-700">
+            <i class="fas fa-boxes text-blue-400 text-3xl mr-3"></i>
+            <h1 class="text-2xl font-bold tracking-wider">Stock<span class="text-blue-400">Pro</span></h1>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="#" class="flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg shadow-md transition-colors">
+                <i class="fas fa-home w-6 mr-2"></i>
+                <span class="font-medium">Painel Principal</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
+                <i class="fas fa-box-open w-6 mr-2"></i>
+                <span class="font-medium">Produtos</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
+                <i class="fas fa-chart-line w-6 mr-2"></i>
+                <span class="font-medium">Relatórios</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
+                <i class="fas fa-cog w-6 mr-2"></i>
+                <span class="font-medium">Configurações</span>
+            </a>
+            <div class="mt-auto pt-4 border-t border-slate-700 w-full">
+                <a href="#" id="btnViewDB" class="flex items-center px-4 py-3 text-green-400 hover:bg-slate-700 hover:text-green-300 rounded-lg transition-colors">
+                    <i class="fas fa-database w-6 mr-2"></i>
+                    <span class="font-medium">Ver Base de Dados</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-4 border-t border-slate-700 text-sm text-slate-400 text-center">
+            &copy; 2026 StockPro Inc.
+        </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <main class="flex-1 flex flex-col h-full relative">
+        
+        <!-- Cabeçalho (Header) -->
+        <header class="bg-white shadow-sm border-b border-gray-200 z-10">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center md:hidden">
+                    <button class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <span class="ml-3 text-xl font-bold text-slate-800">Stock<span class="text-blue-600">Pro</span></span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 hidden md:block">Gestão de Inventário</h2>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-gray-500 hover:text-blue-600 cursor-pointer text-lg"></i>
+                        <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 cursor-pointer">
+                        A
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal Rolável -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+            
+            <!-- Cards de Resumo -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Total de Produtos -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                    <div class="p-4 rounded-full bg-blue-50 text-blue-600 mr-4">
+                        <i class="fas fa-boxes text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Total de Produtos</p>
+                        <h3 class="text-2xl font-bold text-gray-800" id="total-produtos-card">0</h3>
+                    </div>
+                </div>
+                
+                <!-- Valor Total em Stock -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                    <div class="p-4 rounded-full bg-green-50 text-green-600 mr-4">
+                        <i class="fas fa-money-bill-wave text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Valor em Stock (Kz)</p>
+                        <h3 class="text-2xl font-bold text-gray-800" id="valor-total-card">0.00</h3>
+                    </div>
+                </div>
+
+                <!-- Produtos com Stock Baixo -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                    <div class="p-4 rounded-full bg-orange-50 text-orange-600 mr-4">
+                        <i class="fas fa-exclamation-triangle text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Alertas de Stock</p>
+                        <h3 class="text-2xl font-bold text-gray-800" id="alertas-stock-card">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de Ações da Tabela -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-3 md:space-y-0">
+                <div class="relative w-full md:w-96">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out" placeholder="Buscar produtos por nome ou código...">
+                </div>
+                <div class="flex w-full md:w-auto space-x-2 md:space-x-3">
+                    <button onclick="openDbModal()" class="w-1/2 md:w-auto bg-slate-800 hover:bg-slate-900 text-white px-4 md:px-5 py-2.5 rounded-lg shadow-sm font-medium transition duration-150 ease-in-out flex items-center justify-center">
+                        <i class="fas fa-database md:mr-2"></i> <span class="hidden md:inline">Base de Dados</span>
+                    </button>
+                    <button onclick="openModal()" class="w-1/2 md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-5 py-2.5 rounded-lg shadow-sm font-medium transition duration-150 ease-in-out flex items-center justify-center">
+                        <i class="fas fa-plus md:mr-2"></i> <span class="hidden md:inline">Novo Produto</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabela de Produtos -->
+            <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Código</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Produto</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoria</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Preço (Kz)</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Qtd</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-produtos" class="bg-white divide-y divide-gray-200">
+                            <!-- Os produtos serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Mensagem quando não há produtos -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center py-12 px-4 text-center">
+                    <div class="text-gray-300 mb-4">
+                        <i class="fas fa-box-open text-6xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-1">Nenhum produto encontrado</h3>
+                    <p class="text-gray-500 mb-4">Seu inventário está vazio ou a busca não retornou resultados.</p>
+                    <button onclick="openModal()" class="text-blue-600 hover:text-blue-800 font-medium bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors">
+                        Adicionar primeiro produto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Formulário Produto (Fundo Obscuro) -->
+    <div id="productModal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <!-- Conteúdo do Modal -->
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 mx-4 transform scale-95 opacity-0 transition-all duration-300 ease-out" id="modalContent">
+            
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Adicionar Novo Produto</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none p-1 rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <form id="productForm" class="space-y-4">
+                <input type="hidden" id="produtoId">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">Código SK</label>
+                        <input type="text" id="codigo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-50 uppercase" placeholder="Ex: SK-001">
+                    </div>
+                    <div>
+                        <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                        <select id="categoria" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white">
+                            <option value="">Selecione...</option>
+                            <option value="Eletrônicos">Eletrônicos</option>
+                            <option value="Vestuário">Vestuário</option>
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Mobiliário">Mobiliário</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+                    <input type="text" id="nome" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Ex: Laptop Dell Inspiron">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="preco" class="block text-sm font-medium text-gray-700 mb-1">Preço (Kz)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">Kz</span>
+                            </div>
+                            <input type="number" id="preco" required min="0" step="0.01" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="quantidade" class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                        <input type="number" id="quantidade" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3 border-t border-gray-100 mt-6">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i> Salvar Produto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Componente Toast (Notificação flutuante) -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+            <i id="toastIcon" class="fas fa-check-circle text-green-400 mr-3 text-xl"></i>
+            <span id="toastMessage" class="font-medium">Operação realizada com sucesso!</span>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm mx-4 w-full text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Excluir Produto</h3>
+            <p class="text-sm text-gray-500 mb-6">Tem certeza que deseja excluir <span id="deleteProductName" class="font-semibold text-gray-700"></span>? Esta ação não pode ser desfeita.</p>
+            <div class="flex justify-center space-x-3">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancelar</button>
+                <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Sim, excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Base de Dados (Raw JSON) -->
+    <div id="dbModal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="relative w-full max-w-3xl bg-slate-800 rounded-2xl shadow-2xl mx-4 flex flex-col" style="max-height: 90vh;">
+            <div class="flex justify-between items-center p-5 border-b border-slate-700">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-server text-green-400 mr-3"></i> Nuvem Firestore (Dados Brutos)
+                </h3>
+                <button onclick="closeDbModal()" class="text-slate-400 hover:text-white focus:outline-none p-1 rounded-full hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 flex-1 overflow-y-auto">
+                <p class="text-slate-400 text-sm mb-4">Estes são os documentos (produtos) armazenados de forma segura e em tempo real na sua coleção particular do banco de dados Firebase Firestore:</p>
+                <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto border border-slate-700 relative group">
+                    <pre><code id="dbRawOutput" class="text-green-400 text-sm font-mono">Carregando dados...</code></pre>
+                </div>
+            </div>
+            <div class="p-5 border-t border-slate-700 flex justify-end space-x-3 bg-slate-800 rounded-b-2xl">
+                <button onclick="copiarDadosDB()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white rounded-lg font-medium transition-colors flex items-center">
+                    <i class="fas fa-copy mr-2"></i> Copiar JSON
+                </button>
+                <button onclick="closeDbModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                    Fechar Painel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuração da Base de Dados ---
+        const appId = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'default-app-id';
+        
+        let firebaseConfig = {};
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = JSON.parse(__firebase_config);
+            }
+        } catch (e) {
+            console.error("Erro ao analisar a configuração da base de dados:", e);
+        }
+        
+        let app, db, auth, userId;
+        
+        // --- Estado da Aplicação ---
+        let produtos = []; // Agora começa vazio e é preenchido pelo Banco de Dados
+        let produtoParaExcluir = null;
+        let modoEdicao = false;
+
+        // Limiar para considerar stock baixo
+        const STOCK_BAIXO = 5;
+
+        // --- Elementos do DOM ---
+        const tabelaProdutos = document.getElementById('tabela-produtos');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('searchInput');
+        const form = document.getElementById('productForm');
+        const modal = document.getElementById('productModal');
+        const modalContent = document.getElementById('modalContent');
+        const deleteModal = document.getElementById('deleteModal');
+        const dbModal = document.getElementById('dbModal');
+        const dbRawOutput = document.getElementById('dbRawOutput');
+        
+        // Cards
+        const totalProdutosCard = document.getElementById('total-produtos-card');
+        const valorTotalCard = document.getElementById('valor-total-card');
+        const alertasStockCard = document.getElementById('alertas-stock-card');
+
+        // --- Inicialização do Banco de Dados ---
+        const initDB = async () => {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    showToast("Aviso: Configuração de DB ausente. Trabalhando offline.", "error");
+                    realizarBusca(); // Renderiza interface mesmo sem DB
+                    return;
+                }
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Autenticação com Fallback (Se o token principal falhar, usa anônimo)
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== '') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (authError) {
+                    console.warn("Aviso: Token principal falhou. Tentando acesso seguro alternativo...", authError);
+                    await signInAnonymously(auth);
+                }
+
+                if (!auth.currentUser) {
+                    throw new Error("Não foi possível autenticar na nuvem.");
+                }
+                
+                userId = auth.currentUser.uid;
+
+                showToast("Conectado à nuvem com sucesso!", "info");
+                
+                carregarDados();
+            } catch (error) {
+                console.error("Erro Crítico DB:", error);
+                showToast(`Erro de conexão: ${error.message || 'Desconhecido'}`, "error");
+                realizarBusca(); // Renderiza interface mesmo se der erro crítico
+            }
+        };
+
+        const carregarDados = () => {
+            if (!userId || !db) return;
+            const produtosRef = collection(db, 'artifacts', appId, 'users', userId, 'produtos');
+            
+            // onSnapshot observa a base de dados e atualiza a tela automaticamente se houver mudanças
+            onSnapshot(produtosRef, (snapshot) => {
+                produtos = [];
+                snapshot.forEach((doc) => {
+                    produtos.push({ id: doc.id, ...doc.data() });
+                });
+                realizarBusca(); // Renderiza a tabela aplicando filtro se houver
+            }, (error) => {
+                console.error("Erro ao carregar dados:", error);
+                showToast(`Erro de permissão: ${error.code || error.message}`, "error");
+            });
+        };
+
+        // --- Funções Utilitárias ---
+        // Formatar moeda (Kwanza)
+        const formatarMoeda = (valor) => {
+            return new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(valor);
+        };
+
+        // Mostrar Toast de Notificação
+        const showToast = (mensagem, tipo = 'success') => {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastMessage.textContent = mensagem;
+            
+            if (tipo === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-green-400 mr-3 text-xl';
+            } else if (tipo === 'error') {
+                toastIcon.className = 'fas fa-times-circle text-red-400 mr-3 text-xl';
+            } else if (tipo === 'info') {
+                toastIcon.className = 'fas fa-cloud text-blue-400 mr-3 text-xl';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        };
+
+        const getStatusBadge = (quantidade) => {
+            if (quantidade === 0) {
+                return '<span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"><i class="fas fa-times-circle mr-1 mt-0.5"></i> Esgotado</span>';
+            } else if (quantidade <= STOCK_BAIXO) {
+                return '<span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800"><i class="fas fa-exclamation-circle mr-1 mt-0.5"></i> Baixo</span>';
+            } else {
+                return '<span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1 mt-0.5"></i> Normal</span>';
+            }
+        };
+
+        // --- Lógica Principal ---
+        const atualizarEstatisticas = () => {
+            const total = produtos.length;
+            const valorTotal = produtos.reduce((acc, curr) => acc + (curr.preco * curr.quantidade), 0);
+            const alertas = produtos.filter(p => p.quantidade <= STOCK_BAIXO).length;
+
+            totalProdutosCard.textContent = total;
+            valorTotalCard.textContent = formatarMoeda(valorTotal).replace('Kz', '').trim();
+            alertasStockCard.textContent = alertas;
+            
+            if(alertas > 0) {
+                alertasStockCard.classList.add('text-orange-600');
+            } else {
+                alertasStockCard.classList.remove('text-orange-600');
+            }
+        };
+
+        const renderizarTabela = (dados = produtos) => {
+            tabelaProdutos.innerHTML = '';
+
+            if (dados.length === 0) {
+                tabelaProdutos.parentElement.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                tabelaProdutos.parentElement.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+
+                dados.forEach((produto) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'table-row-hover transition-colors duration-150';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded font-mono">${produto.codigo}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">${produto.nome}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">${produto.categoria}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="text-sm font-medium text-gray-900">${formatarMoeda(produto.preco)}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div class="text-sm text-gray-900 font-semibold ${produto.quantidade <= STOCK_BAIXO ? 'text-red-600' : ''}">${produto.quantidade}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            ${getStatusBadge(produto.quantidade)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <button onclick="editarProduto('${produto.id}')" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="prepararExclusao('${produto.id}', '${produto.nome.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors" title="Excluir">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tabelaProdutos.appendChild(tr);
+                });
+            }
+
+            atualizarEstatisticas();
+        };
+
+        // --- Controle de Modais (Expostos para o Window) ---
+        window.openModal = () => {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            if (!modoEdicao) {
+                document.getElementById('modalTitle').textContent = 'Adicionar Novo Produto';
+                form.reset();
+                document.getElementById('produtoId').value = '';
+                document.getElementById('codigo').value = 'PRD-' + Math.floor(1000 + Math.random() * 9000);
+            }
+            
+            document.getElementById('codigo').focus();
+        };
+
+        window.closeModal = () => {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modoEdicao = false;
+                form.reset();
+            }, 300);
+        };
+
+        window.prepararExclusao = (id, nome) => {
+            produtoParaExcluir = id;
+            document.getElementById('deleteProductName').textContent = nome;
+            deleteModal.classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = () => {
+            deleteModal.classList.add('hidden');
+            produtoParaExcluir = null;
+        };
+
+        window.openDbModal = () => {
+            dbModal.classList.remove('hidden');
+            // Formatar os dados do banco para exibição como JSON
+            dbRawOutput.textContent = JSON.stringify(produtos, null, 4);
+        };
+
+        window.closeDbModal = () => {
+            dbModal.classList.add('hidden');
+        };
+
+        window.copiarDadosDB = () => {
+            const texto = dbRawOutput.textContent;
+            try {
+                // Tenta usar a API moderna primeiro, mas usa um fallback seguro para iframes
+                const textArea = document.createElement("textarea");
+                textArea.value = texto;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast("Dados copiados para a área de transferência!", "success");
+            } catch (err) {
+                showToast("Erro ao copiar dados.", "error");
+            }
+        };
+
+        // Evento para o botão da barra lateral
+        document.getElementById('btnViewDB').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.openDbModal();
+        });
+
+        window.editarProduto = (id) => {
+            const produto = produtos.find(p => p.id === id);
+            if (produto) {
+                modoEdicao = true;
+                document.getElementById('modalTitle').textContent = 'Editar Produto';
+                document.getElementById('produtoId').value = produto.id;
+                document.getElementById('codigo').value = produto.codigo;
+                document.getElementById('nome').value = produto.nome;
+                document.getElementById('categoria').value = produto.categoria;
+                document.getElementById('preco').value = produto.preco;
+                document.getElementById('quantidade').value = produto.quantidade;
+                
+                window.openModal();
+            }
+        };
+
+        // --- Operações CRUD (Salvando na Base de Dados) ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!userId) {
+                showToast("Aguarde a conexão com a base de dados.", "error");
+                return;
+            }
+
+            const idInput = document.getElementById('produtoId').value;
+            const codigo = document.getElementById('codigo').value.toUpperCase();
+            const nome = document.getElementById('nome').value;
+            const categoria = document.getElementById('categoria').value;
+            const preco = parseFloat(document.getElementById('preco').value);
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+
+            if(!codigo || !nome || !categoria || isNaN(preco) || isNaN(quantidade)) {
+                showToast('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+
+            const produtoData = { 
+                codigo, 
+                nome, 
+                categoria, 
+                preco, 
+                quantidade, 
+                atualizadoEm: new Date().toISOString() 
+            };
+
+            try {
+                if (modoEdicao && idInput) {
+                    // Atualizar na Nuvem
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'produtos', idInput);
+                    await updateDoc(docRef, produtoData);
+                    showToast('Produto atualizado na nuvem!');
+                } else {
+                    // Verificar código duplicado localmente antes de salvar
+                    if(produtos.some(p => p.codigo === codigo)) {
+                        showToast('Já existe um produto com este código SKU.', 'error');
+                        return;
+                    }
+                    // Criar Novo na Nuvem
+                    const produtosRef = collection(db, 'artifacts', appId, 'users', userId, 'produtos');
+                    await addDoc(produtosRef, produtoData);
+                    showToast('Produto salvo no stock!');
+                }
+
+                window.closeModal();
+                searchInput.value = ''; 
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                showToast(`Erro ao comunicar: ${error.message || 'Sem conexão'}`, "error");
+            }
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (produtoParaExcluir !== null && userId) {
+                try {
+                    // Excluir da Nuvem
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'produtos', produtoParaExcluir);
+                    await deleteDoc(docRef);
+                    window.closeDeleteModal();
+                    showToast('Produto excluído com sucesso.', 'info');
+                } catch (error) {
+                    console.error("Erro ao excluir:", error);
+                    showToast(`Erro ao excluir: ${error.message || 'Sem permissão'}`, "error");
+                }
+            }
+        });
+
+        // Buscar/Filtrar
+        const realizarBusca = () => {
+            const termo = searchInput.value.toLowerCase();
+            const produtosFiltrados = produtos.filter(produto => 
+                produto.nome.toLowerCase().includes(termo) || 
+                produto.codigo.toLowerCase().includes(termo) ||
+                produto.categoria.toLowerCase().includes(termo)
+            );
+            renderizarTabela(produtosFiltrados);
+        };
+
+        searchInput.addEventListener('input', realizarBusca);
+
+        // Fechar modais ao clicar fora (no fundo escuro)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) window.closeModal();
+        });
+        
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) window.closeDeleteModal();
+        });
+
+        dbModal.addEventListener('click', (e) => {
+            if (e.target === dbModal) window.closeDbModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!modal.classList.contains('hidden')) window.closeModal();
+                if (!deleteModal.classList.contains('hidden')) window.closeDeleteModal();
+                if (!dbModal.classList.contains('hidden')) window.closeDbModal();
+            }
+        });
+
+        // Inicializar a aplicação conectando ao Banco
+        window.onload = () => {
+            initDB();
+        };
+
+    </script>
+</body>
+</html>
